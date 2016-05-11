@@ -619,12 +619,12 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.health			= 100;
 	client->pers.max_health		= 100;
 
-	client->pers.max_bullets	= 200;
-	client->pers.max_shells		= 100;
-	client->pers.max_rockets	= 50;
-	client->pers.max_grenades	= 50;
-	client->pers.max_cells		= 200;
-	client->pers.max_slugs		= 50;
+	client->pers.max_bullets	= 20;
+	client->pers.max_shells		= 10;
+	client->pers.max_rockets	= 10;
+	client->pers.max_grenades	= 15;
+	client->pers.max_cells		= 20;
+	client->pers.max_slugs		= 10;
 
 	client->pers.connected = true;
 }
