@@ -1244,6 +1244,11 @@ void PutClientInServer (edict_t *ent)
 	} else
 		client->resp.spectator = false;
 
+	//initiate parameters for flash grenade
+	client->grenadeType = GRENADE_NORMAL;
+	client->blindBase = 0;
+	client->blindTime = 0;
+
 	if (!KillBox (ent))
 	{	// could't spawn in?
 	}

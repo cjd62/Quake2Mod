@@ -231,6 +231,34 @@ typedef struct
 #define WEAP_RAILGUN			10
 #define WEAP_BFG				11
 
+
+//Grenade Types
+#define GRENADE_NORMAL		0
+#define GRENADE_FLASH		1
+#define GRENADE_DET			2
+#define GRENADE_STICKY		3
+#define GRENADE_PROXIM		4
+#define GRENADE_CONC		5
+#define GRENADE_BFG			6	
+
+//LASER STUFF
+// my functions
+void		PlaceLaser (edict_t *ent);
+void    	pre_target_laser_think (edict_t *self);
+
+// controlling parameters
+#define		LASER_TIME									30
+#define		CELLS_FOR_LASER								20
+#define		LASER_DAMAGE								100
+#define		LASER_MOUNT_DAMAGE							50
+#define		LASER_MOUNT_DAMAGE_RADIUS					64
+
+// In-built Quake2 routines
+void		target_laser_use (edict_t *self, edict_t *other, edict_t *activator);
+void		target_laser_think (edict_t *self);
+void		target_laser_on (edict_t *self);
+void		target_laser_off (edict_t *self);
+
 typedef struct gitem_s
 {
 	char		*classname;	// spawning name
@@ -678,6 +706,7 @@ void T_RadiusDamage (edict_t *inflictor, edict_t *attacker, float damage, edict_
 void monster_fire_bullet (edict_t *self, vec3_t start, vec3_t dir, int damage, int kick, int hspread, int vspread, int flashtype);
 void monster_fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread, int count, int flashtype);
 void monster_fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int flashtype, int effect);
+void Grenade_Explode (edict_t *ent);
 void monster_fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, int flashtype);
 void monster_fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int flashtype);
 void monster_fire_railgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick, int flashtype);
@@ -956,6 +985,10 @@ struct gclient_s
 	int			flood_whenhead;		// head pointer for when said
 
 	float		respawn_time;		// can respawn when time > this
+
+	int			grenadeType;
+	float		blindTime;
+	float		blindBase;
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?

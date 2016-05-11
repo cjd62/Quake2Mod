@@ -900,6 +900,75 @@ void Cmd_PlayerList_f(edict_t *ent)
 }
 
 
+void Cmd_DetPipes_f (edict_t *ent)
+{
+	edict_t	*blip = NULL;
+
+	while ((blip = findradius(blip, ent->s.origin, 1000)) != NULL)
+	{
+		if (!strcmp(blip->classname, "detpipe") && blip->owner == ent)
+		{
+			blip->think = Grenade_Explode;
+			blip->nextthink = level.time + .1;
+		}
+	}
+}
+
+void Cmd_DetPipeActivate_f(edict_t *ent)
+{
+	if (ent->client->grenadeType != GRENADE_DET)
+	{
+		gi.cprintf(ent, PRINT_HIGH, " Detpipes selected.\n");
+		ent->client->grenadeType = GRENADE_DET;
+	}
+	else
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Standard grenades selected.\n");
+		ent->client->grenadeType = GRENADE_NORMAL;
+	}
+}
+
+void Cmd_FlashGrenade_f(edict_t *ent)
+{
+	if (ent->client->grenadeType != GRENADE_FLASH)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Flash grenades selected.\n");
+		ent->client->grenadeType = GRENADE_FLASH;
+	}
+	else
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Standard grenades selected.\n");
+		ent->client->grenadeType = GRENADE_NORMAL;
+	}
+}
+
+void Cmd_StickyGrenade_f(edict_t *ent)
+{
+	if (ent->client->grenadeType != GRENADE_STICKY)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Sticky grenades selected.\n");
+		ent->client->grenadeType = GRENADE_STICKY;
+	}
+	else
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Standard grenades selected.\n");
+		ent->client->grenadeType = GRENADE_NORMAL;
+	}
+}
+
+void Cmd_ProximityGrenade_f(edict_t *ent)
+{
+	if (ent->client->grenadeType != GRENADE_PROXIM)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Proximity grenades selected.\n");
+		ent->client->grenadeType = GRENADE_PROXIM;
+	}
+	else
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Standard grenades selected.\n");
+		ent->client->grenadeType = GRENADE_NORMAL;
+	}
+}
 /*
 =================
 ClientCommand
@@ -987,6 +1056,17 @@ void ClientCommand (edict_t *ent)
 		Cmd_Wave_f (ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+	//detpipe mod
+	else if (Q_stricmp(cmd, "detpipes") == 0)
+		Cmd_DetPipes_f (ent);
+	else if (Q_stricmp(cmd, "flash") == 0)
+		Cmd_FlashGrenade_f (ent);
+	else if (Q_stricmp(cmd, "detpipesact") == 0)
+		Cmd_DetPipeActivate_f (ent);
+	else if (Q_stricmp(cmd, "sticky") == 0)
+		Cmd_StickyGrenade_f (ent);
+	else if (Q_stricmp(cmd, "proximity") == 0)
+		Cmd_ProximityGrenade_f (ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }
