@@ -18,7 +18,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 #include "g_local.h"
-
+#include "m_player.h"
+#define newDecoy self-decoy
+int i;
+int huh;
+void SP_Decoy (edict_t *self);
+void func_explosive_explode (edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point);
 
 /*
 =================

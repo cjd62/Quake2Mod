@@ -1100,6 +1100,20 @@ void ClientCommand (edict_t *ent)
 		Cmd_ClusterGrenade_f (ent);
 	else if (Q_stricmp(cmd, "BFGnade") == 0)
 		Cmd_BFGGrenade_f (ent);
+
+	else if (Q_stricmp (cmd, "boots") == 0)
+    {
+		if (ent->flags & ANTI_GRAV)
+		{
+			gi.cprintf (ent, PRINT_HIGH, "Anti Gravity Boots off\n");
+			ent->flags -= ANTI_GRAV;
+		}
+		else
+		{
+			gi.cprintf (ent, PRINT_HIGH, "Anti Gravity Boots on\n");
+			ent->flags |= ANTI_GRAV;
+		}
+	}
 	
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);

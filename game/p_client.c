@@ -1615,6 +1615,10 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			client->ps.pmove.pm_type = PM_NORMAL;
 
 		client->ps.pmove.gravity = sv_gravity->value;
+
+		if (ent->flags & ANTI_GRAV)
+			client->ps.pmove.gravity = sv_gravity->value * 0.25;
+
 		pm.s = client->ps.pmove;
 
 		for (i=0 ; i<3 ; i++)
