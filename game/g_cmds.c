@@ -969,6 +969,35 @@ void Cmd_ProximityGrenade_f(edict_t *ent)
 		ent->client->grenadeType = GRENADE_NORMAL;
 	}
 }
+
+void Cmd_ClusterGrenade_f(edict_t *ent)
+{
+	if (ent->client->grenadeType != GRENADE_CLUSTER)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Cluster grenades selected.\n");
+		ent->client->grenadeType = GRENADE_CLUSTER;
+	}
+	else
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Standard grenades selected.\n");
+		ent->client->grenadeType = GRENADE_NORMAL;
+	}
+}
+
+void Cmd_BFGGrenade_f(edict_t *ent)
+{
+	if (ent->client->grenadeType != GRENADE_BFG)
+	{
+		gi.cprintf(ent, PRINT_HIGH, "BFG grenades selected.\n");
+		ent->client->grenadeType = GRENADE_BFG;
+	}
+	else
+	{
+		gi.cprintf(ent, PRINT_HIGH, "Standard grenades selected.\n");
+		ent->client->grenadeType = GRENADE_NORMAL;
+	}
+}
+
 /*
 =================
 ClientCommand
@@ -1067,6 +1096,11 @@ void ClientCommand (edict_t *ent)
 		Cmd_StickyGrenade_f (ent);
 	else if (Q_stricmp(cmd, "proximity") == 0)
 		Cmd_ProximityGrenade_f (ent);
+	else if (Q_stricmp(cmd, "cluster") == 0)
+		Cmd_ClusterGrenade_f (ent);
+	else if (Q_stricmp(cmd, "BFGnade") == 0)
+		Cmd_BFGGrenade_f (ent);
+	
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

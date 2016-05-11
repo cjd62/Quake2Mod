@@ -29,6 +29,8 @@ a non-instant attack weapon.  It checks to see if a
 monster's dodge function should be called.
 =================
 */
+int loopindex;
+
 static void check_dodge (edict_t *self, vec3_t start, vec3_t dir, int speed)
 {
 	vec3_t	end;
@@ -648,8 +650,80 @@ void Grenade_Explode (edict_t *ent)
 		else
 			gi.WriteByte (TE_ROCKET_EXPLOSION);
 	}
+
 	gi.WritePosition (origin);
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
+	
+	G_FreeEdict (ent);
+}
+
+/*=================
+bfg_grenade
+===================
+*/
+void Grenade2_Explode (edict_t *ent)
+{
+	vec3_t		origin;
+	vec3_t		origin2;
+	int			mod;
+
+	if (ent->owner->client)
+		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
+
+	//FIXME: if we are onground then raise our Z just a bit since we are a point?
+	if (ent->enemy)
+	{
+		float	points;
+		vec3_t	v;
+		vec3_t	dir;
+
+		VectorAdd (ent->enemy->mins, ent->enemy->maxs, v);
+		VectorMA (ent->enemy->s.origin, 0.5, v, v);
+		VectorSubtract (ent->s.origin, v, v);
+		points = ent->dmg - 0.5 * VectorLength (v);
+		VectorSubtract (ent->enemy->s.origin, ent->s.origin, dir);
+		if (ent->spawnflags & 1)
+			mod = MOD_HANDGRENADE;
+		else
+			mod = MOD_GRENADE;
+		T_Damage (ent->enemy, ent, ent->owner, dir, ent->s.origin, vec3_origin, (int)points, (int)points, DAMAGE_RADIUS, mod);
+	}
+
+	if (ent->spawnflags & 2)
+		mod = MOD_HELD_GRENADE;
+	else if (ent->spawnflags & 1)
+		mod = MOD_HG_SPLASH;
+	else
+		mod = MOD_G_SPLASH;
+	T_RadiusDamage(ent, ent->owner, ent->dmg, ent->enemy, ent->dmg_radius, mod);
+
+	VectorMA (ent->s.origin, -0.02, ent->velocity, origin);
+	gi.WriteByte (svc_temp_entity);
+	if (ent->waterlevel)
+	{
+		if (ent->groundentity)
+			gi.WriteByte (TE_GRENADE_EXPLOSION_WATER);
+		else
+			gi.WriteByte (TE_ROCKET_EXPLOSION_WATER);
+	}
+	else
+	{
+		if (ent->groundentity)
+			gi.WriteByte (TE_GRENADE_EXPLOSION);
+		else
+			gi.WriteByte (TE_ROCKET_EXPLOSION);
+	}
+
+	gi.WritePosition (origin);
+	gi.multicast (ent->s.origin, MULTICAST_PHS);
+	
+	for (loopindex = 0; loopindex < 3; loopindex++){
+	origin2[0] = crandom();
+	origin2[1] = crandom();
+	origin2[2] = crandom();
+	
+	fire_bfg(ent->owner, ent->s.origin, origin2, 200, 200, 150);
+	}
 
 	G_FreeEdict (ent);
 }
@@ -721,6 +795,64 @@ static void Proxim_Think (edict_t *ent)
 	ent->nextthink = level.time + .1;
 }
 
+/*
+===================
+Cluster Grenades
+===================
+*/
+static void Cluster_Explode (edict_t *ent)
+
+{
+	vec3_t		origin;
+
+	//Sean added these 4 vectors
+
+	vec3_t   grenade1;
+	vec3_t   grenade2;
+	vec3_t   grenade3;
+	vec3_t   grenade4;
+
+	if (ent->owner->client)
+		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
+
+	//FIXME: if we are onground then raise our Z just a bit since we are a point?
+	T_RadiusDamage(ent, ent->owner, ent->dmg, NULL, ent->dmg_radius, MOD_HG_SPLASH);
+
+	VectorMA (ent->s.origin, -0.02, ent->velocity, origin);
+	gi.WriteByte (svc_temp_entity);
+	if (ent->waterlevel)
+	{
+		if (ent->groundentity)
+			gi.WriteByte (TE_GRENADE_EXPLOSION_WATER);
+		else
+			gi.WriteByte (TE_ROCKET_EXPLOSION_WATER);
+	}
+	else
+	{
+		if (ent->groundentity)
+			gi.WriteByte (TE_GRENADE_EXPLOSION);
+		else
+			gi.WriteByte (TE_ROCKET_EXPLOSION);
+	}
+	gi.WritePosition (origin);
+	gi.multicast (ent->s.origin, MULTICAST_PVS);
+
+	// SumFuka did this bit : give grenades up/outwards velocities
+	VectorSet(grenade1,20,20,40);
+	VectorSet(grenade2,20,-20,40);
+	VectorSet(grenade3,-20,20,40);
+	VectorSet(grenade4,-20,-20,40);
+
+	// Sean : explode the four grenades outwards
+	fire_grenade3(ent, origin, grenade1, 120, 10, 1.0, 120);
+	fire_grenade3(ent, origin, grenade2, 120, 10, 1.0, 120);
+	fire_grenade3(ent, origin, grenade3, 120, 10, 1.0, 120);
+	fire_grenade3(ent, origin, grenade4, 120, 10, 1.0, 120);
+
+	G_FreeEdict (ent);
+}
+
+
 void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius)
 {
 	edict_t	*grenade;
@@ -749,6 +881,7 @@ void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int s
 	grenade->think = Grenade_Explode;
 	grenade->dmg = damage;
 	grenade->dmg_radius = damage_radius;
+
     
 	if ((self->client) && (self->client->grenadeType == GRENADE_FLASH))
     {
@@ -775,23 +908,55 @@ void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int s
 		grenade->nextthink = level.time + .1;
 		grenade->classname = "proximity_grenade";
 	}
-	/*else if ((self->client) && (self->client->grenadeType == GRENADE_STICKY))
+	else if ((self->client) && (self->client->grenadeType == GRENADE_CLUSTER))
 	{
-		grenade->touch = Sticky_Touch;
-		grenade->think = Sticky_Explode;
-		grenade->nextthink = level.time + 3;
-		grenade->classname = "sticky_grenade";
+		
+		grenade->think = Cluster_Explode;
+		grenade->classname = "cluster_grenade";
 	}
-	else if ((self->client) && (self->client->grenadeType == GRENADE_STICKY))
+	
+	else if ((self->client) && (self->client->grenadeType == GRENADE_BFG))
 	{
-		grenade->touch = Sticky_Touch;
-		grenade->think = Sticky_Explode;
-		grenade->nextthink = level.time + 3;
-		grenade->classname = "sticky_grenade";
-	}*/
+		grenade->think = Grenade2_Explode;
+		grenade->classname = "bfg_grenade";
+	}
 
     else
 		grenade->classname = "grenade";
+	
+	gi.linkentity (grenade);
+}
+
+void fire_grenade3 (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius)
+{
+	edict_t	*grenade;
+	vec3_t	dir;
+	vec3_t	forward, right, up;
+
+	vectoangles (aimdir, dir);
+	AngleVectors (dir, forward, right, up);
+
+	grenade = G_Spawn();
+	VectorCopy (start, grenade->s.origin);
+	VectorScale (aimdir, speed, grenade->velocity);
+	VectorMA (grenade->velocity, 200 + crandom() * 10.0, up, grenade->velocity);
+	VectorMA (grenade->velocity, crandom() * 10.0, right, grenade->velocity);
+	VectorSet (grenade->avelocity, 300, 300, 300);
+	grenade->movetype = MOVETYPE_BOUNCE;
+	grenade->clipmask = MASK_SHOT;
+	grenade->solid = SOLID_BBOX;
+	grenade->s.effects |= EF_GRENADE;
+	VectorClear (grenade->mins);
+	VectorClear (grenade->maxs);
+	grenade->s.modelindex = gi.modelindex ("models/objects/grenade/tris.md2");
+	grenade->owner = self;
+	grenade->touch = Grenade_Touch;
+	grenade->nextthink = level.time + timer;
+	grenade->think = Grenade_Explode;
+	grenade->dmg = damage;
+	grenade->dmg_radius = damage_radius;
+	
+	grenade->classname = "grenade";
 	
 	gi.linkentity (grenade);
 }
@@ -850,20 +1015,18 @@ void fire_grenade2 (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int 
 		grenade->nextthink = level.time + .1;
 		grenade->classname = "proximity_grenade";
 	}
-	/*else if ((self->client) && (self->client->grenadeType == GRENADE_STICKY))
+	else if ((self->client) && (self->client->grenadeType == GRENADE_CLUSTER))
 	{
-		grenade->touch = Sticky_Touch;
-		grenade->think = Sticky_Explode;
-		grenade->nextthink = level.time + 3;
-		grenade->classname = "sticky_grenade";
+		
+		grenade->think = Cluster_Explode;
+		grenade->classname = "cluster_grenade";
 	}
-	else if ((self->client) && (self->client->grenadeType == GRENADE_STICKY))
+	
+	else if ((self->client) && (self->client->grenadeType == GRENADE_BFG))
 	{
-		grenade->touch = Sticky_Touch;
-		grenade->think = Sticky_Explode;
-		grenade->nextthink = level.time + 3;
-		grenade->classname = "sticky_grenade";
-	}*/
+		grenade->think = Grenade2_Explode;
+		grenade->classname = "bfg_grenade";
+	}
 
     else
 		grenade->classname = "hgrenade";
@@ -1123,7 +1286,6 @@ void bfg_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf
 	gi.multicast (self->s.origin, MULTICAST_PVS);
 }
 
-
 void bfg_think (edict_t *self)
 {
 	edict_t	*ent;
@@ -1200,7 +1362,6 @@ void bfg_think (edict_t *self)
 
 	self->nextthink = level.time + FRAMETIME;
 }
-
 
 void fire_bfg (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius)
 {

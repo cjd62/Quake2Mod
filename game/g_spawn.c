@@ -645,6 +645,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 #endif
 
+
 char *single_statusbar = 
 "yb	-24 "
 
@@ -704,6 +705,10 @@ char *single_statusbar =
 ;
 
 char *dm_statusbar =
+//Grenadetype
+"xv 0 "
+"num 2 30 "
+
 "yb	-24 "
 
 // health

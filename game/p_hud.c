@@ -386,6 +386,8 @@ void G_SetStats (edict_t *ent)
 	ent->client->ps.stats[STAT_HEALTH_ICON] = level.pic_health;
 	ent->client->ps.stats[STAT_HEALTH] = ent->health;
 
+	//grenadetype on hud
+	ent->client->ps.stats[STAT_GRENADETYPE] = ent->client->grenadeType;
 	//
 	// ammo
 	//
